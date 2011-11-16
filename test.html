@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>jQuery.addFilter Test Suite</title>
+
+<link rel="stylesheet" href="http://code.jquery.com/qunit/git/qunit.css" media="screen" />
+</head>
+<body>
+
+	<h1 id="qunit-header">jQuery.addFilter</h1>
+	<h2 id="qunit-banner"></h2>
+	<div id="qunit-testrunner-toolbar"></div>
+	<h2 id="qunit-userAgent"></h2>
+	<ol id="qunit-tests"></ol>
+	<div id="qunit-fixture">
+		<ul>
+		   <li>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+		   <li>Aliquam tincidunt 'mauris' eu "risus".</li>
+		   <li>Vestibulum auctor dapibus neque aliquamus.</li>
+		</ul>
+	</div>
+
+<script src="http://code.jquery.com/jquery-1.7.min.js"></script>
+<script src="http://code.jquery.com/qunit/git/qunit.js"></script>
+<script src="jquery.addFilter.js"></script>
+<script>
+
+module("No arguments: uneven", {
+		setup: function() {
+			this.base = $("#qunit-fixture");
+			$.addFilter("uneven", function(domElement, index, domElementArray) {
+				return $(domElement).html().length % 2 === 1;
+			});
+		}
+	});
+test("Null test", function() {
+	equal(this.base.find("li").length, 3);
+});
+test("Return some", function() {
+	equal(this.base.find("li:uneven").length, 1);
+});
+test("Empty parens", function() {
+	raises(function() {
+		this.base.find("li:uneven()");
+	},
+	"Empty parentheses should throw an exception");
+});
+test("Bogus argument", function() {
+	equal(this.base.find("li:uneven('qwerty')").length, 1);
+});
+
+module("One argument: longer", {
+		setup: function() {
+			this.base = $("#qunit-fixture");
+			$.addFilter("longer", function(domElement, index, domElementArray, length) {
+				return length < $(domElement).html().length;
+			});
+		}
+	});
+test("Return all", function() {
+	equal(this.base.find("li:longer('4')").length, 3);
+});
+test("Return some", function() {
+	equal(this.base.find("li:longer('40')").length, 2);
+});
+test("Return none", function() {
+	equal(this.base.find("li:longer('400')").length, 0);
+});
+test("No quotes", function() {
+	equal(this.base.find("li:longer(40)").length, 2);
+});
+test("Double quotes", function() {
+	equal(this.base.find('li:longer("40")').length, 2);
+});
+
+module("Two arguments: between", {
+		setup: function() {
+			this.base = $("#qunit-fixture");
+			$.addFilterWithArgs("between", function(domElement, index, domElementArray, min, max) {
+				var l = $(domElement).html().length;
+				return min <= l && l <= max;
+			});
+		}
+	});
+test("Return all", function() {
+	equal(this.base.find("li:between('5','500')").length, 3);
+});
+test("Return some", function() {
+	equal(this.base.find("li:between('32','42')").length, 2);
+});
+test("No quotes", function() {
+	equal(this.base.find("li:between(32,42)").length, 2);
+});
+test("Double quotes", function() {
+	equal(this.base.find('li:between("32","42")').length, 2);
+});
+
+module("Two arguments: regexp", {
+		setup: function() {
+			this.base = $("#qunit-fixture");
+			$.addFilterWithArgs("regexp", function(domElement, index, domElementArray, regexp, switches) {
+				return new RegExp(regexp, switches).test($(domElement).text());
+			});
+		}
+	});
+test("Single arg", function() {
+	equal(this.base.find("li:regexp('Aliquam')").length, 1);
+});
+test("Two args", function() {
+	equal(this.base.find("li:regexp('Aliquam','i')").length, 2);
+});
+test("Double quotes", function() {
+	equal(this.base.find('li:regexp("Aliquam","i")').length, 2);
+});
+test("No quotes", function() {
+	equal(this.base.find("li:regexp(Aliquam,i)").length, 2);
+});
+test("Escaped quotes", function() {
+	equal(this.base.find("li:regexp('\\'mauris\\'','i')").length, 1);
+});
+test("Escaped double quotes", function() {
+	equal(this.base.find('li:regexp("\\"risus\\"","i")').length, 1);
+});
+test("Excaped comma, no match", function() {
+	equal(this.base.find("li:regexp(Amet\\, Consectetuer)").length, 0);
+});
+test("Excaped comma, match", function() {
+	equal(this.base.find("li:regexp(Amet\\, Consectetuer,i)").length, 1);
+});
+
+</script>
+</body>
+</html>
